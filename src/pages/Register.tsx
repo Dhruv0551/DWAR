@@ -42,7 +42,11 @@ export default function Register() {
     }
 
     try {
-      await signUpWithEmail(email, password, fullName);
+      const res = await signUpWithEmail(email, password, fullName);
+      if (res?.error) {
+        setError(res.error);
+        return;
+      }
       setSuccess(true);
       // Wait a moment then go to onboarding
       setTimeout(() => navigate('/onboarding'), 2000);

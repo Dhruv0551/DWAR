@@ -16,8 +16,13 @@ export default function Login() {
     e.preventDefault();
     setError(null);
     try {
-      await signInWithEmail(email, password);
-      if (profile?.is_onboarded) {
+      const res = await signInWithEmail(email, password);
+      if (res?.error) {
+        setError(res.error);
+        return;
+      }
+      const currentProfile = useAuthStore.getState().profile;
+      if (currentProfile?.is_onboarded) {
         navigate('/app/dashboard');
       } else {
         navigate('/onboarding');

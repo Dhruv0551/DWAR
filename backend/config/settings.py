@@ -5,8 +5,18 @@ from dotenv import load_dotenv
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR.parent / ".env")
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dwar-demo-only-secret-change-me")
-DEBUG = os.getenv("DJANGO_DEBUG", "True").lower() == "true"
-ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+ALLOWED_HOSTS = [
+    x.strip()
+    for x in os.getenv(
+        "DJANGO_ALLOWED_HOSTS",
+        "localhost,127.0.0.1,dwar-f1g7.onrender.com,.onrender.com"
+    ).split(",")
+    if x.strip()
+]
+render_external_host = os.getenv("RENDER_EXTERNAL_HOSTNAME")
+if render_external_host and render_external_host not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(render_external_host)
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -78,10 +88,18 @@ STATIC_URL = "static/"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-CORS_ALLOWED_ORIGINS = [
-    x
-    for x in os.getenv("CORS_ALLOWED_ORIGINS", "http://localhost:5173").split(",")
-    if x
+default_origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "https://dwar-frontend.onrender.com",
+]
+env_origins = [x.strip() for x in os.getenv("CORS_ALLOWED_ORIGINS", "").split(",") if x.strip()]
+CORS_ALLOWED_ORIGINS = list(set(default_origins + env_origins))
+CORS_ALLOW_CREDENTIALS = True
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:5173",
+    "https://dwar-frontend.onrender.com",
+    "https://*.onrender.com",
 ]
 REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": ["rest_framework.renderers.JSONRenderer"],
