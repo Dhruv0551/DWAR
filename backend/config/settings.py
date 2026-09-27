@@ -57,13 +57,14 @@ TEMPLATES = [
     }
 ]
 WSGI_APPLICATION = "config.wsgi.application"
-DB_URL = os.getenv("SUPABASE_DB_URL", "")
-if DB_URL and DB_URL.startswith("postgresql"):
+DB_URL = os.getenv("SUPABASE_DB_URL") or os.getenv("DATABASE_URL") or ""
+is_placeholder = any(p in DB_URL for p in ["[password]", "[project-ref]", "placeholder", "your-project"])
+if DB_URL and not is_placeholder and (DB_URL.startswith("postgresql") or DB_URL.startswith("postgres")):
     try:
         import dj_database_url
-
+        ssl_opt = True if "supabase.co" in DB_URL else False
         DATABASES = {
-            "default": dj_database_url.parse(DB_URL, conn_max_age=600, ssl_require=True)
+            "default": dj_database_url.parse(DB_URL, conn_max_age=600, ssl_require=ssl_opt)
         }
     except Exception:
         DATABASES = {
